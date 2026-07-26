@@ -1,6 +1,6 @@
 Function.prototype.myApply = function (thisArg, arg) {
     const context = thisArg ?? globalThis;
-    const fuSymbol = Symbol("temporaryMethod");
+    const fnSymbol = Symbol("temporaryMethod");
 
     context.fnSymbol = this;
     const result = context.fnSymbol(...arg);
