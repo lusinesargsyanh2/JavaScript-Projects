@@ -134,7 +134,7 @@ const lion = new Lion("Simba", 10, "Simba's pride");
 
 
 console.log(lion.getEnergy()); //100
-lion.eat; // not change energy because max energy is 100
+lion.eat(); // not change energy because max energy is 100
 console.log(lion.getEnergy()); // 100 
 lion.hunt();
 console.log(lion.getEnergy());
