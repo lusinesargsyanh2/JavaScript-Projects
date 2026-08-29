@@ -77,6 +77,9 @@ Lion.prototype.setPrideName = function (value) {
 Lion.prototype.roar = function () {
     this.setEnergy(this.getEnergy() - 10);
 }
+Lion.prototype.getInfo = function () {
+    return `${this._name} is ${this._age} year old have energy is ${this._energy}  and  ${this._isHungry ? "is" : "isn't"} hungry, pride name is ${this._prideName}`;
+}
 // Lion end
 // Herbivore
 function Herbivore(name, age, favoritePlant) {
@@ -125,7 +128,9 @@ Rabbit.prototype.graze = function () {
 Rabbit.prototype.jump = function () {
     this.setEnergy(this.getEnergy() - 5);
 }
-
+Rabbit.prototype.getInfo = function () {
+    return `${this._name} is ${this._age} year old have energy is ${this._energy} and favorite plant is  ${this._favoritePlant}, jump height is ${this._jumpHeight}`;
+}
 // Rabbit end
 
 

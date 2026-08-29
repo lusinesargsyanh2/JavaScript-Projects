@@ -81,6 +81,9 @@ class Lion extends Predator {
     hunt() {
         super.hunt();
     }
+    getInfo() {
+        return `${super.getInfo()}, pride name is ${this.prideName}`;
+    }
 
 }
 
@@ -126,6 +129,9 @@ class Rabbit extends Herbivore {
     }
     jump() {
         this.energy -= 5;
+    }
+    getInfo() {
+        return `${super.getInfo()}, jump height is ${this.jumpHeight}`;
     }
 }
 
