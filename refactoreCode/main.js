@@ -12,9 +12,21 @@ class User {
         this.type = type;
     }
 
-    generateProfileReport() {
+
+}
+////// ReportService
+class ReportService {
+    generateProfileReport(user) {
         console.log(
-            `Generating profile report for ${this.name}`
+            `Generating profile report for ${user.name}`
+        );
+    }
+}
+/////// InvoiceService
+class InvoiceService {
+    generateInvoice(user) {
+        console.log(
+            `Generating invoice for order ${user.name}`
         );
     }
 }
@@ -93,11 +105,6 @@ class Order {
 
 
 
-    generateInvoice() {
-        console.log(
-            `Generating invoice for order ${this.id}`
-        );
-    }
 
     cancel() {
         if (this.status === "delivered") {
@@ -163,7 +170,7 @@ class PaymentCash extends Payment {
         );
     }
     refund(amount) {
-        throw new Error(
+        console.log(
             "Cash cannot be refunded"
         );
     }
@@ -302,26 +309,71 @@ class DiscountComposite extends Discount {
 
 class Database {
     saveUser(user) {
+        throw new Error("is abstract method need to be changed in child class");
+    }
+
+    saveRestaurant(restaurant) {
+        throw new Error("is abstract method need to be changed in child class");
+    }
+
+    saveOrder(order) {
+        throw new Error("is abstract method need to be changed in child class");
+    }
+
+    saveDish(dish) {
+        throw new Error("is abstract method need to be changed in child class");
+    }
+}
+
+class MySQLDatabase extends Database {
+    saveUser(user) {
         console.log(
-            "Saving user to MySQL..."
+            `Saving user ${user.id} to MySQL...`
         );
     }
 
     saveRestaurant(restaurant) {
         console.log(
-            "Saving restaurant to MySQL..."
+            `Saving restaurant ${restaurant.id} to MySQL...`
         );
     }
 
     saveOrder(order) {
         console.log(
-            "Saving order to MySQL..."
+            `Saving order ${order.id} to MySQL...`
         );
     }
 
     saveDish(dish) {
         console.log(
-            "Saving dish to MySQL..."
+            `Saving dish ${dish.id} to MySQL...`
+        );
+    }
+}
+
+
+class PostgresDatabase extends Database {
+    saveUser(user) {
+        console.log(
+            `Saving user ${user.id} to Postgres...`
+        );
+    }
+
+    saveRestaurant(restaurant) {
+        console.log(
+            `Saving restaurant ${restaurant.id} to Postgres...`
+        );
+    }
+
+    saveOrder(order) {
+        console.log(
+            `Saving order ${order.id} to Postgres...`
+        );
+    }
+
+    saveDish(dish) {
+        console.log(
+            `Saving dish ${dish.id} to Postgres...`
         );
     }
 }
@@ -423,13 +475,16 @@ const dessert = new Dish(
     "dessert"
 );
 
+const reportService = new ReportService();
+const reportInvoice = new InvoiceService();
+
 restaurant.addDish(pizza);
 restaurant.addDish(burger);
 restaurant.addDish(dessert);
 
 
 // Services
-const database = new Database();
+const database = new MySQLDatabase();
 const payment = new PaymentCard();
 const delivery = new CourierDelivery();
 const notification = new NotificationEmail();
@@ -466,3 +521,7 @@ const order = orderService.createOrder(
         }
     ]
 );
+
+reportService.generateProfileReport(user1);
+reportInvoice.generateInvoice(user1);
+database.saveOrder(order);
