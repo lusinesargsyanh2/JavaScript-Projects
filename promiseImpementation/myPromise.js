@@ -82,6 +82,19 @@ class MyPromise {
     catch(onRejected) {
         return this.then(null, onRejected);
     }
+
+    finally(callback) {
+        return this.then(
+            (value) => {
+                callback();
+                return value;
+            },
+            (reason) => {
+                callback();
+                throw reason;
+            }
+        );
+    }
 }
 
 console.log('start');
@@ -147,6 +160,9 @@ p1.then((value) => {
     })
     .then((value) => {
         console.log("4 3:", value);
+    })
+    .finally(() => {
+        console.log("cleanup");
     });
 
 p1.then((value) => {
@@ -158,7 +174,8 @@ p1.then((value) => {
         console.log("5 2:", value);
 
         return value + 5;
-    }).catch((error) => {
+    })
+    .catch((error) => {
         console.log("Test 5 3:", error.message);
     })
     .then((value) => {
