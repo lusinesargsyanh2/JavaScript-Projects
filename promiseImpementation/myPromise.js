@@ -10,16 +10,10 @@ class MyPromise {
         const resolve = (value) => {
             if (this.state !== "pending") return;
 
-            // if we return promise
-            if (value instanceof MyPromise) {
-                value.then(resolve, reject);
-                return;
-            }
-
             this.value = value;
             this.state = "fulfilled";
             this.onFulfilledCallbacks.forEach((callback) => {
-                queueMicrotask(callback);
+                queueMicrotask(() => callback(this.value));
             });
         }
 
@@ -28,7 +22,7 @@ class MyPromise {
             this.reason = reason;
             this.state = "rejected";
             this.onRejectedCallbacks.forEach((callback) => {
-                queueMicrotask(callback);
+                queueMicrotask(() => callback(this.reason));
             });
         }
 
@@ -40,25 +34,43 @@ class MyPromise {
     }
 
     then(onFulfilled, onRejected) {
-        onFulfilled = onFulfilled || ((value) => value);
 
-        onRejected = onRejected || ((reason) => {
-            throw reason;
-        });
         return new MyPromise((resolve, reject) => {
-            const handleFulfilled = () => {
+            const handleFulfilled = (value) => {
                 try {
-                    const result = onFulfilled(this.value);
-                    resolve(result);
+
+                    if (typeof onFulfilled !== "function") {
+                        resolve(value);
+
+                        return;
+                    }
+                    const result = onFulfilled(value);
+
+                    if (result instanceof MyPromise) {
+                        result.then(resolve, reject);
+                    } else {
+                        resolve(result);
+                    }
                 } catch (err) {
                     reject(err)
                 }
 
             }
-            const handleReject = () => {
+            const handleReject = (reason) => {
                 try {
-                    const result = onRejected(this.reason);
-                    resolve(result);
+
+                    if (typeof onRejected !== "function") {
+                        reject(reason);
+                        return;
+                    }
+
+                    const result = onRejected(reason);
+
+                    if (result instanceof MyPromise) {
+                        result.then(resolve, reject);
+                    } else {
+                        resolve(result);
+                    }
                 } catch (err) {
                     reject(err)
                 }
@@ -67,14 +79,11 @@ class MyPromise {
 
             if (this.state === "fulfilled") {
                 queueMicrotask(() => handleFulfilled(this.value))
-            }
-            if (this.state === "rejected") {
+            } else if (this.state === "rejected") {
                 queueMicrotask(() => handleReject(this.reason))
-            }
-
-            if (this.state === "pending") {
-                this.onFulfilledCallbacks.push(handleFulfilled);
-                this.onRejectedCallbacks.push(handleReject);
+            } else {
+                this.onFulfilledCallbacks.push((value) => handleFulfilled(value));
+                this.onRejectedCallbacks.push((reject) => handleReject(reject));
             }
         })
     }
@@ -82,103 +91,89 @@ class MyPromise {
     catch(onRejected) {
         return this.then(null, onRejected);
     }
-
-    finally(callback) {
-        return this.then(
-            (value) => {
-                callback();
-                return value;
-            },
-            (reason) => {
-                callback();
-                throw reason;
-            }
-        );
-    }
 }
 
-console.log('start');
-//// example 1
-const promise = new MyPromise((resolve) => {
-    resolve(10);
-});
 
-promise
-    .then((value) => {
-        console.log(value); // 10
+// console.log("--- Test 1: Basic Async & Chaining ---");
 
-        return new MyPromise((resolve) => {
-            setTimeout(() => {
-                resolve(20);
-            }, 1000);
-        });
-    })
-    .then((value) => {
-        console.log(value); // 20
-    });
+// const p1 = new MyPromise((resolve) => {
+//     setTimeout(() => resolve(10), 300);
+// });
 
-//// example 2
-const promise1 = new MyPromise((resolve, reject) => {
-    reject("Something went wrong");
-});
+// p1.then((val) => {
+//     console.log("Step 1:", val);
+//     return val * 2;
+// }).then((val2) => {
+//     console.log("Step 2:", val2);
+// });
 
-promise1.catch((error) => {
-    console.log("Test 2:", error);
-});
+// // //////////////////////////////////////////////////
 
-//// example 3
-const p = new MyPromise((resolve) => {
-    setTimeout(() => {
-        resolve(10);
-    }, 1000);
-});
+// console.log("--- Test 2: Nested Promise Resolution ---");
+// new MyPromise((resolve) => {
+//     setTimeout(() => resolve(5), 300);
+// })
+//     .then((val) => {
+//         console.log("Step 1 received:", val);
+//         return new MyPromise((resolve) => {
+//             setTimeout(() => resolve(val + 100), 300);
+//         });
+//     })
+//     .then((finalVal) => {
+//         console.log("Final step awaited nested promise:", finalVal);
+//     });
 
-p.then((value) => {
-    console.log("3 first:", value);
-});
+// // //////////////////////////////////////////////////
 
-p.then((value) => {
-    console.log("3 second:", value);
-});
+// console.log("--- Test 3: Error Handling & Recovery via Catch ---");
+// new MyPromise((resolve, reject) => {
+//     setTimeout(() => reject("Server down"), 300);
+// })
+//     .then((val) => {
+//         console.log("Should not run:", val);
+//     })
+//     .catch((err) => {
+//         console.log("Caught error:", err);
+//         return "Recovered from backup";
+//     })
+//     .then((recoveredVal) => {
+//         console.log("Chain revived:", recoveredVal);
+//     });
 
-p.then((value) => {
-    console.log("3 third:", value);
-});
+// // //////////////////////////////////////////////////
 
-//// example 4
-const p1 = new MyPromise((resolve) => {
-    resolve(10);
-});
+// console.log("--- Test 4: Passthrough ---");
+// new MyPromise((resolve) => {
+//     resolve("Secret Code 777");
+// })
+//     .then(null, (err) => {
+//         console.log("No error, this callback is skipped");
+//     })
+//     .then((val) => {
+//         console.log("Value passed through:", val);
+//     });
 
-p1.then((value) => {
-    console.log("4 1:", value);
-    return value * 2;
-})
-    .then((value) => {
-        console.log("4 2:", value);
-        return value + 5;
-    })
-    .then((value) => {
-        console.log("4 3:", value);
-    })
-    .finally(() => {
-        console.log("cleanup");
-    });
+// // //////////////////////////////////////////////////
 
-p1.then((value) => {
-    console.log("5 1:", value);
-    throw new Error("receive error");
-    return value * 2;
-})
-    .then((value) => {
-        console.log("5 2:", value);
+// console.log("--- Test 5: Exception Interception (try/catch) ---");
+// new MyPromise((resolve) => {
+//     resolve(10);
+// })
+//     .then((val) => {
+//         throw new Error("Crash in user code!");
+//     })
+//     .then(
+//         (val) => console.log("Success (should not run):", val),
+//         (err) => console.log("Internal try/catch caught throw:", err.message)
+//     );
 
-        return value + 5;
-    })
-    .catch((error) => {
-        console.log("Test 5 3:", error.message);
-    })
-    .then((value) => {
-        console.log("5 Last:", value);
-    });
-console.log("end");
+// // //////////////////////////////////////////////////
+
+// console.log("--- Test 6: Multiple Subscribers (Pending State) ---");
+// const pendingPromise = new MyPromise((resolve) => {
+//     setTimeout(() => resolve("Shared Data"), 300);
+// });
+
+// pendingPromise.then((val) => console.log("Subscriber 1:", val));
+// pendingPromise.then((val) => console.log("Subscriber 2:", val));
+// pendingPromise.then((val) => console.log("Subscriber 3:", val));
