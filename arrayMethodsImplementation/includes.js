@@ -2,10 +2,6 @@ Array.prototype.myIncludes = function (searchElement, fromIndex = 0) {
     const size = this.length;
     fromIndex = Math.trunc(fromIndex);
 
-    for (let i = 0; i < size; i++) {
-        const element = this[i];
-
-    }
 
     if (fromIndex >= size) return false;
 
