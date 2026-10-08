@@ -169,14 +169,12 @@ class SList {
             throw new Error(errorMessage.validIndex);
         }
 
-        const newNode = new Node(value);
 
         if (index === 0) {
-            newNode.next = this.head;
-            this.head = newNode;
-            this.#size++;
+            this.push_front(value);
             return;
         }
+        const newNode = new Node(value);
 
         let curr = this.head;
         let i = 0;
