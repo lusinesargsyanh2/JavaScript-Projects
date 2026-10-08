@@ -4,7 +4,8 @@ const errorMessage = {
     eraseEmpty: "Cannot erase element from empty list",
     empty: "Empty list",
     emptyValue: "Please enter valid value",
-    validList: "Please enter valid list"
+    validList: "Please enter valid list",
+    expectArr: "Expected an array"
 }
 class Node {
     constructor(data, next = null) {
@@ -32,6 +33,9 @@ class SList {
     }
 
     static fromArray(arr) {
+        if (!Array.isArray(arr)) {
+            throw new TypeError(errorMessage.expectArr);
+        }
         const list = new SList();
 
         for (const elem of arr) {
