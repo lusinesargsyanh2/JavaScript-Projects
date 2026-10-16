@@ -100,6 +100,7 @@ class BST {
     //     return curr;
     // }
 
+    // Option 2: Use the maximum value from the left subtree
     getMax(node) {
         let curr = node;
 
