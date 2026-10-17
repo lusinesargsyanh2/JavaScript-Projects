@@ -110,11 +110,13 @@ queue.enqueue(10);
 queue.enqueue(20);
 queue.enqueue(30);
 
-queue.print();                    // [10, 20, 30]
-console.log(queue.get_front());   // 10
-console.log(queue.get_back());    // 30
-console.log(queue.dequeue());     // 10
-queue.print();                    // [20, 30]
+// queue.print();                    // [10, 20, 30]
+// console.log(queue.get_front());   // 10
+// console.log(queue.get_back());    // 30
+// console.log(queue.dequeue());     // 10
+// queue.print();                    // [20, 30]
 
-console.log([...queue]);          // [20, 30]
-console.log(queue.size);  
+// console.log([...queue]);          // [20, 30]
+// console.log(queue.size);
+
+module.exports = Queue;

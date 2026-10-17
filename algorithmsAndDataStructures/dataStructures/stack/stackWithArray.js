@@ -16,7 +16,7 @@ class Stack {
         }
         this.#capacity = initialCapacity;
         this.#size = 0;
-        this.array = new Uint16Array(this.#capacity);
+        this.array = new Array(this.#capacity); // not Uint16Array so we can use this for tree
         this.#top = 0;
     }
 
@@ -84,17 +84,19 @@ stack.push(30);
 //     console.log(value);
 // }
 
-console.log(stack.size); // 3
+// console.log(stack.size); // 3
 
-console.log(stack.pop()); // 30
-console.log(stack.pop()); // 20
+// console.log(stack.pop()); // 30
+// console.log(stack.pop()); // 20
 
-console.log(stack.size); // 1
+// console.log(stack.size); // 1
 
 
-stack.push(40);
+// stack.push(40);
 
-console.log(stack.pop()); // 40
-console.log(stack.pop()); // 10
+// console.log(stack.pop()); // 40
+// console.log(stack.pop()); // 10
 
-console.log(stack.isEmpty()); // true
+// console.log(stack.isEmpty()); // true
+
+module.exports = Stack;
