@@ -146,15 +146,7 @@ class AVL {
         this._update(node);
         let bf = this._bf(node);
 
-        // if (bf > 1 && value > node.data) {
-        //     return this._rightRotate(node);
-        // } else if (bf < -1 && value < node.data) {
-        //     return this._leftRotate(node)
-        // }
-
         if (bf > 1 && this._bf(node.left) >= 0) {
-            console.log("R");
-
             return this._rightRotate(node);
         } else if (bf > 1 && this._bf(node.left) < 0) {
             node.left = this._leftRotate(node.left);
