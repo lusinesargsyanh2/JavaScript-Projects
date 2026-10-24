@@ -1,14 +1,11 @@
-const Queue = require('../queue.js');
-const Stack = require('../stack/stackWithArray.js');
-
 const errorMessage = {
     emptyData: "Please enter valid data",
     empty: "Tree is empty"
 }
 
-class TreeNode {
+class AvlNode {
     constructor(data) {
-        if (!data) throw new Error(errorMessage.emptyData);
+        if (data === null || data === undefined) throw new Error(errorMessage.emptyData);
 
         this.data = data;
         this.left = null;
@@ -18,52 +15,59 @@ class TreeNode {
 }
 
 class AVL {
-    constructor() {
-        this.root = null;
+    constructor(value) {
+        this.root = value === undefined || value === null ? null : new AvlNode(value);
     }
 
-    bf(node) {// balance factor
-        if (!node) return;
+    _bf(node) { // balance factor
+        if (!node) return 0;
 
-        return node ? this.getHeight(node.left) - this.getHeight(node.right) : 0;
+        return node ? this._getHeight(node.left) - this._getHeight(node.right) : 0;
     }
 
-    getHeight(node) {
+    _getHeight(node) {
         return node ? node.height : 0;
     }
 
-    updateHeight(node) {
-        node.height = 1 + Math.max(this.getHeight(node.left), this.getHeight(node.right));
+    _update(node) { // update height
+        node.height = 1 + Math.max(this._getHeight(node.left), this._getHeight(node.right));
     }
+    _getMin(node) {
+        let curr = node;
 
-    rightRotate(y) {
+        while (curr && curr.left) {
+            curr = curr.left;
+        }
+        return curr;
+    }
+    _rightRotate(y) {
         let x = y.left;
         let T1 = x.right;
 
         x.right = y;
         y.left = T1;
 
-        this.updateHeight(y);
-        this.updateHeight(x);
+        this._update(y);
+        this._update(x);
 
         return x;
     }
 
-    leftRotate(y) {
+    _leftRotate(y) {
         let x = y.right;
         let T1 = x.left;
 
         x.left = y;
         y.right = T1;
 
-        this.updateHeight(y);
-        this.updateHeight(x);
+        this._update(y);
+        this._update(x);
 
         return x;
     }
 
     _insert(node, value) {
-        if (!node) return new TreeNode(value);
+        if (!node) return new AvlNode(value);
 
         if (value < node.data) {
             node.left = this._insert(node.left, value);
@@ -73,27 +77,22 @@ class AVL {
             return node;
         }
 
-        this.updateHeight(node);
-        let bf = this.bf(node);
+        this._update(node);
+        let bf = this._bf(node);
 
-        if (bf > 1) {
-            return this.rightRotate(node);
-        } else if (bf < -1) {
-            return this.leftRotate(node);
+        if (bf > 1 && value < node.left.data) {
+            return this._rightRotate(node);
+        } else if (bf > 1 && value > node.left.data) {
+            node.left = this._leftRotate(node.left);
+            return this._rightRotate(node);
+        } else if (bf < -1 && value > node.right.data) {
+            return this._leftRotate(node);
+        } else if (bf < -1 && value < node.right.data) {
+            node.right = this._rightRotate(node.right);
+            return this._leftRotate(node);
         }
 
         return node;
-    }
-
-    _contains(node, value) {
-        if (!node) return false;
-        if (value === node.data) return true;
-
-        if (value < node.data) {
-            return this._contains(node.left, value);
-        } else if (value > node.data) {
-            return this._contains(node.right, value);
-        }
     }
 
     _inOrder(node, result) {
@@ -110,10 +109,10 @@ class AVL {
         this._preOrder(node.right, result);
     }
 
-    _postOrder(node, result) {
+    _preOrder(node, result) {
         if (!node) return;
-        this._postOrder(node.left, result);
-        this._postOrder(node.right, result);
+        this._preOrder(node.left, result);
+        this._preOrder(node.right, result);
         result.push(node.data);
     }
 
@@ -139,219 +138,139 @@ class AVL {
 
             if (!node.left || !node.right) return node.left || node.right;
 
-            // Option 1: Use the minimum value from the right subtree
-            // let successor = this.getMin(node.right);
-
-            // Option 2: Use the maximum value from the left subtree
-            let successor = this.getMax(node.left);
+            let successor = this._getMin(node.right);
 
             node.data = successor.data;
 
-            // Option 1: Use the minimum value from the right subtree
-            // node.right = this._remove(node.right, successor.data);
+            node.right = this._remove(node.right, successor.data);
+        }
 
-            // Option 2: Use the maximum value from the left subtree
-            node.left = this._remove(node.left, successor.data);
+        this._update(node);
+        let bf = this._bf(node);
+
+        // if (bf > 1 && value > node.data) {
+        //     return this._rightRotate(node);
+        // } else if (bf < -1 && value < node.data) {
+        //     return this._leftRotate(node)
+        // }
+
+        if (bf > 1 && this._bf(node.left) >= 0) {
+            console.log("R");
+
+            return this._rightRotate(node);
+        } else if (bf > 1 && this._bf(node.left) < 0) {
+            node.left = this._leftRotate(node.left);
+            return this._rightRotate(node);
+        } else if (bf < -1 && this._bf(node.right) <= 0) {
+            return this._leftRotate(node);
+        } else if (bf < -1 && this._bf(node.right) > 0) {
+            node.right = this._rightRotate(node.right);
+            return this._leftRotate(node);
         }
         return node;
     }
 
-    // Option 1: Use the minimum value from the right subtree
-    // getMin(node) {
-    //     let curr = node;
-
-    //     while (curr && curr.left) {
-    //         curr = curr.left;
-    //     }
-    //     return curr;
-    // }
-
-    // Option 2: Use the maximum value from the left subtree
-    getMax(node) {
-        let curr = node;
-
-        while (curr && curr.right) {
-            curr = curr.right;
-        }
-        return curr;
-    }
-
-    insertRecursive(value) {
+    insert(value) {
         this.root = this._insert(this.root, value);
     }
 
-    containsRecursive(value) {
-        return this._contains(this.root, value);
-    }
-
-    inOrderIterative() {
-        let res = [];
-        let stack = new Stack();
-
-        let curr = this.root;
-
-        while (curr || !stack.isEmpty()) {
-
-            while (curr) {
-                stack.push(curr);
-                curr = curr.left;
-            }
-
-            curr = stack.pop();
-            res.push(curr.data);
-            curr = curr.right;
-        }
-        return res;
-    }
-
-    postOrderIterative() {
-        let stack1 = new Stack();
-        let stack2 = new Stack();
-        stack1.push(this.root);
-        let curr = this.root;
-        let res = [];
-
-        while (!stack1.isEmpty()) {
-            let curr = stack1.pop();
-            if (curr.left) stack1.push(curr.left);
-            if (curr.right) stack1.push(curr.right);
-            stack2.push(curr);
-        }
-
-        while (!stack2.isEmpty()) {
-            res.push(stack2.pop().data);
-        }
-        return res;
-    }
-
-    preOrderIterative() {
-        let res = [];
-        let stack = new Stack();
-        stack.push(this.root);
-
-        while (!stack.isEmpty()) {
-            const curr = stack.pop();
-
-            if (curr.right) stack.push(curr.right);
-            if (curr.left) stack.push(curr.left);
-
-            res.push(curr.data);
-        }
-        return res;
-    }
-
-    levelOrderIterative() {
-        // let count = 0;
-        if (!this.root) throw new Error(errorMessage.empty);
-        ;
-        let res = [];
-
-        let queue = new Queue();
-        queue.enqueue(this.root);
-
-        while (queue.size) {
-            let levelSize = queue.size;
-
-            for (let i = 0; i < levelSize; i++) {
-                let curr = queue.dequeue();
-
-                res.push(curr.data);
-                if (curr.left) queue.enqueue(curr.left);
-                if (curr.right) queue.enqueue(curr.right);
-
-            }
-            // count++;
-        }
-        return res;
-    }
-
-    levelOrderRecursive() {
+    levelOrder() {
         const result = [];
         this._levelOrder(this.root, result);
         return result.flat();
     }
 
-    inOrderRecursive() {
+    inOrder() {
         const result = [];
         this._inOrder(this.root, result);
         return result;
     }
 
-    preOrderRecursive() {
+    preOrder() {
         const result = [];
         this._preOrder(this.root, result);
         return result;
     }
 
-    postOrderRecursive() {
+    preOrder() {
         const result = [];
-        this._postOrder(this.root, result);
+        this._preOrder(this.root, result);
         return result;
     }
 
-    removeRecursive(value) {
+    remove(value) {
         this.root = this._remove(this.root, value);
     }
 
-    insert(value) {
-        let newNode = new TreeNode(value);
-        if (!this.root) {
-            this.root = newNode;
-            return;
+    printTree(node = this.root, prefix = "", isLeft = true) {
+        if (!node) return;
+
+        if (node.right) {
+            this.printTree(
+                node.right,
+                prefix + (isLeft ? "│   " : "    "),
+                false
+            );
         }
 
-        let curr = this.root;
-        while (true) {
-            if (value < curr.data) {
-                if (!curr.left) {
-                    curr.left = newNode
-                    return;
-                } else {
-                    curr = curr.left;
-                }
+        console.log(
+            `${prefix}${node.data} [H:${node.height}, BF:${this._bf(node)}]`
+        );
 
-            } else if (value > curr.data) {
-                if (!curr.right) {
-                    curr.right = newNode
-                    return;
-                } else {
-                    curr = curr.right;
-                }
-
-            }
+        if (node.left) {
+            this.printTree(
+                node.left,
+                prefix + (isLeft ? "    " : "│   "),
+                true
+            );
         }
     }
 
-    contains(value) {
-        if (!this.root) return false;
-        let curr = this.root;
 
-
-        while (curr) {
-            if (curr.data === value) return true;
-
-            if (value < curr.data) {
-                curr = curr.left
-            } else {
-                curr = curr.right
-            }
-        }
-        return false;
-
-    }
 }
 
+// const bst = new AVL(); 
 
-const bst = new AVL();
+// 1. LL rotation
+// [30, 20, 10].forEach(value => bst.insert(value));
+
+// 2. RR rotation
+// [10, 20, 30].forEach(value => bst.insert(value));
+
+// // 3. LR rotation
+// [30, 10, 20].forEach(value => bst.insert(value));
+
+// // 4. RL rotation
+// [10, 30, 20].forEach(value => bst.insert(value));
+
+// // 5. Ascending order
+// [1, 2, 3, 4, 5, 6, 7].forEach(value => bst.insert(value));
+
+// // 6. Descending order
+// [7, 6, 5, 4, 3, 2, 1].forEach(value => bst.insert(value));
+
+// // 7. Random order
+// [50, 30, 70, 20, 40, 60, 80, 10, 25].forEach(value => bst.insert(value));
+
+// // 8. Duplicate values
+// [10, 20, 10, 30, 20].forEach(value => bst.insert(value));
+
+// console.log(bst.inOrder());
+// bst.printTree(); 
 
 
-bst.insertRecursive(7);
-bst.insertRecursive(5);
-bst.insertRecursive(3);
+ 
+// //////////////// REMOVE TEST
+// const bst = new AVL();
 
-console.log(bst.root.data);       // 5
-console.log(bst.root.left.data);  // 3
-console.log(bst.root.right.data); // 7
-console.log(bst.root.height);     // 2
+// [30, 40, 20, 10].forEach(v => bst.insert(v));
+// bst.remove(40);
+// [30, 40, 20, 25].forEach(v => bst.insert(v));
+// bst.remove(40);
+// [10,5,20,25].forEach(v => bst.insert(v));
+// bst.remove(5);
+// [10, 5, 20, 18].forEach(v => bst.insert(v));
+// bst.remove(5);
 
-console.log(bst.inOrderRecursive()); // [3, 5, 7]
+// bst.printTree();
+ 
