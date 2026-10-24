@@ -1,8 +1,6 @@
 const errorMessage = {
     emptyData: "Please enter valid data",
-    empty: "Tree is empty"
 }
-
 class AvlNode {
     constructor(data) {
         if (data === null || data === undefined) throw new Error(errorMessage.emptyData);
