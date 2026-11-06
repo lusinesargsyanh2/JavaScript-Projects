@@ -107,10 +107,10 @@ class AVL {
         this._preOrder(node.right, result);
     }
 
-    _preOrder(node, result) {
+    _postOrder(node, result) {
         if (!node) return;
-        this._preOrder(node.left, result);
-        this._preOrder(node.right, result);
+        this._postOrder(node.left, result);
+        this._postOrder(node.right, result);
         result.push(node.data);
     }
 
@@ -182,9 +182,9 @@ class AVL {
         return result;
     }
 
-    preOrder() {
+    postOrder() {
         const result = [];
-        this._preOrder(this.root, result);
+        this._postOrder(this.root, result);
         return result;
     }
 
